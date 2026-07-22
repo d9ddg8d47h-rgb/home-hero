@@ -150,6 +150,7 @@ export interface Database {
           client_id: string;
           prescription_id: string;
           completed_on: string;
+          sets_done: number;
           created_at: string;
         };
         Insert: {
@@ -157,6 +158,7 @@ export interface Database {
           client_id: string;
           prescription_id: string;
           completed_on?: string;
+          sets_done?: number;
           created_at?: string;
         };
         Update: {
@@ -164,6 +166,7 @@ export interface Database {
           client_id?: string;
           prescription_id?: string;
           completed_on?: string;
+          sets_done?: number;
           created_at?: string;
         };
         Relationships: [

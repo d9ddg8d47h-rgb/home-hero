@@ -8,34 +8,56 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export async function toggleCompletion(prescriptionId: string) {
+async function adjustSetsDone(prescriptionId: string, delta: number) {
   const client = await requireClient();
   const supabase = await createClient();
   const today = todayISO();
 
   const { data: existing } = await supabase
     .from("completions")
-    .select("id")
+    .select("id, sets_done")
     .eq("prescription_id", prescriptionId)
     .eq("completed_on", today)
     .maybeSingle();
 
-  if (existing) {
-    await supabase.from("completions").delete().eq("id", existing.id);
+  const current = existing?.sets_done ?? 0;
+  const next = Math.max(0, current + delta);
+
+  if (next === 0) {
+    if (existing) {
+      await supabase.from("completions").delete().eq("id", existing.id);
+    }
+  } else if (existing) {
+    await supabase.from("completions").update({ sets_done: next }).eq("id", existing.id);
   } else {
     await supabase.from("completions").insert({
       client_id: client.id,
       prescription_id: prescriptionId,
       completed_on: today,
+      sets_done: next,
     });
   }
 
-  revalidatePath("/client");
+  // 'layout' so the dashboard, program, and rewards pages (all nested
+  // under the /client layout) all pick up the fresh completion state.
+  revalidatePath("/client", "layout");
+}
+
+export async function incrementSetDone(prescriptionId: string) {
+  await adjustSetsDone(prescriptionId, 1);
+}
+
+export async function decrementSetDone(prescriptionId: string) {
+  await adjustSetsDone(prescriptionId, -1);
 }
 
 export type ClientProgress = {
-  todayDone: Set<string>;
+  // prescription_id -> sets logged today
+  todaySetsDone: Record<string, number>;
   streak: number;
+  longestStreak: number;
+  // total sets completed all-time — the unit badges/rank are built on, so
+  // kids get credit for every single set, not just whole exercises.
   totalCompletions: number;
 };
 
@@ -43,16 +65,19 @@ export async function getClientProgress(clientId: string): Promise<ClientProgres
   const supabase = await createClient();
   const { data } = await supabase
     .from("completions")
-    .select("prescription_id, completed_on")
+    .select("prescription_id, completed_on, sets_done")
     .eq("client_id", clientId)
     .order("completed_on", { ascending: false });
 
   const rows = data ?? [];
   const today = todayISO();
 
-  const todayDone = new Set(
-    rows.filter((r) => r.completed_on === today).map((r) => r.prescription_id)
-  );
+  const todaySetsDone: Record<string, number> = {};
+  for (const r of rows) {
+    if (r.completed_on === today) {
+      todaySetsDone[r.prescription_id] = r.sets_done;
+    }
+  }
 
   const days = Array.from(new Set(rows.map((r) => r.completed_on))).sort().reverse();
 
@@ -76,5 +101,28 @@ export async function getClientProgress(clientId: string): Promise<ClientProgres
     }
   }
 
-  return { todayDone, streak, totalCompletions: rows.length };
+  // Longest-ever streak, for bragging rights on the Rewards page — walk
+  // the distinct days ascending and track the longest consecutive run.
+  const daysAsc = [...days].reverse();
+  let longestStreak = 0;
+  let run = 0;
+  let prevDate: Date | null = null;
+  for (const day of daysAsc) {
+    const current = new Date(`${day}T00:00:00Z`);
+    if (prevDate) {
+      const diffDays = Math.round(
+        (current.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      run = diffDays === 1 ? run + 1 : 1;
+    } else {
+      run = 1;
+    }
+    longestStreak = Math.max(longestStreak, run);
+    prevDate = current;
+  }
+  longestStreak = Math.max(longestStreak, streak);
+
+  const totalCompletions = rows.reduce((sum, r) => sum + r.sets_done, 0);
+
+  return { todaySetsDone, streak, longestStreak, totalCompletions };
 }

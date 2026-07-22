@@ -31,15 +31,19 @@ export function ProgressSummary({
   doneToday,
   totalToday,
   streak,
+  longestStreak,
   totalCompletions,
 }: {
   doneToday: number;
   totalToday: number;
   streak: number;
+  longestStreak: number;
   totalCompletions: number;
 }) {
   const allDone = totalToday > 0 && doneToday === totalToday;
-  const badges = computeBadges({ streak, totalCompletions }).filter((b) => b.achieved);
+  const badges = computeBadges({ bestStreak: longestStreak, totalCompletions }).filter(
+    (b) => b.achieved
+  );
   const mascot = mascotMessage({ doneToday, totalToday, streak });
 
   return (

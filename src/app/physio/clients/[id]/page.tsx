@@ -37,7 +37,7 @@ export default async function ClientDetailPage({
   if (!client || client.role !== "client") notFound();
 
   const badges = computeBadges({
-    streak: progress.currentStreak,
+    bestStreak: progress.currentStreak,
     totalCompletions: progress.totalCompletions,
   }).filter((b) => b.achieved);
 
