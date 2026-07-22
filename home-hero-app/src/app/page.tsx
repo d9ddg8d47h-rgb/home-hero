@@ -33,8 +33,8 @@ export default async function Home() {
         </Link>
       </div>
       <p className="mt-6 max-w-xs text-xs text-muted-foreground">
-        Parents and clients: your physio will send you a login — you don&apos;t
-        need to sign up.
+        Parents and clients: use the invite link your physio sent you, or log
+        in if you already have an account.
       </p>
     </div>
   );

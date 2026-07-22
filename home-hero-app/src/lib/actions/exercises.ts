@@ -11,6 +11,7 @@ export type ActionState = { error?: string } | undefined;
 const exerciseSchema = z.object({
   name: z.string().min(1, "Give the exercise a name."),
   description: z.string().optional().default(""),
+  category: z.string().optional().default(""),
   videoUrl: z
     .string()
     .optional()
@@ -27,6 +28,7 @@ export async function createExercise(
   const parsed = exerciseSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
+    category: formData.get("category"),
     videoUrl: formData.get("videoUrl"),
   });
   if (!parsed.success) {
@@ -38,6 +40,7 @@ export async function createExercise(
     physio_id: physio.id,
     name: parsed.data.name,
     description: parsed.data.description,
+    category: parsed.data.category || null,
     video_url: parsed.data.videoUrl || null,
   });
 
@@ -56,6 +59,7 @@ export async function updateExercise(
   const parsed = exerciseSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
+    category: formData.get("category"),
     videoUrl: formData.get("videoUrl"),
   });
   if (!parsed.success) {
@@ -68,6 +72,7 @@ export async function updateExercise(
     .update({
       name: parsed.data.name,
       description: parsed.data.description,
+      category: parsed.data.category || null,
       video_url: parsed.data.videoUrl || null,
     })
     .eq("id", exerciseId);

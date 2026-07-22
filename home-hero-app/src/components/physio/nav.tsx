@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Dumbbell, LogOut } from "lucide-react";
+import { Users, Dumbbell, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/actions/auth";
 
 const links = [
   { href: "/physio", label: "Clients", icon: Users, exact: true },
   { href: "/physio/exercises", label: "Exercises", icon: Dumbbell, exact: false },
+  { href: "/physio/settings", label: "Settings", icon: Settings, exact: false },
 ];
 
 export function PhysioNav() {

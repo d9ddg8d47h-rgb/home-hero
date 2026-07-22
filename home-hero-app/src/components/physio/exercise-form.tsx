@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ActionState } from "@/lib/actions/exercises";
 import type { Database } from "@/lib/database.types";
+import { EXERCISE_CATEGORIES } from "@/lib/database.types";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
@@ -16,7 +17,7 @@ export function ExerciseForm({
   submitLabel,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
-  defaultValues?: Pick<Exercise, "name" | "description" | "video_url">;
+  defaultValues?: Pick<Exercise, "name" | "description" | "video_url" | "category">;
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
@@ -32,6 +33,22 @@ export function ExerciseForm({
           defaultValue={defaultValues?.name}
           required
         />
+      </div>
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <select
+          id="category"
+          name="category"
+          defaultValue={defaultValues?.category ?? ""}
+          className="h-12 w-full rounded-xl border border-input bg-card px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <option value="">No category</option>
+          {EXERCISE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <Label htmlFor="description">Instructions</Label>

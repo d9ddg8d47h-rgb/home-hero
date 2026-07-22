@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, ChevronRight, Mail } from "lucide-react";
+import { Plus, ChevronRight, Mail, Link2 } from "lucide-react";
 import { getMyClients } from "@/lib/actions/clients";
 import { requirePhysio } from "@/lib/dal";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,12 +20,20 @@ export default async function PhysioDashboard() {
         </p>
       </div>
 
-      <Link href="/physio/clients/new">
-        <Button size="lg" className="w-full">
-          <Plus className="h-5 w-5" />
-          Add a new client
-        </Button>
-      </Link>
+      <div className="flex gap-2">
+        <Link href="/physio/clients/new" className="flex-1">
+          <Button size="lg" className="w-full">
+            <Plus className="h-5 w-5" />
+            Add client
+          </Button>
+        </Link>
+        <Link href="/physio/clients/invite" className="flex-1">
+          <Button size="lg" variant="outline" className="w-full">
+            <Link2 className="h-5 w-5" />
+            Invite link
+          </Button>
+        </Link>
+      </div>
 
       {clients.length === 0 ? (
         <Card>

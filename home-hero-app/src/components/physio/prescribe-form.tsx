@@ -29,6 +29,13 @@ export function PrescribeForm({
     );
   }
 
+  const grouped = new Map<string, Exercise[]>();
+  for (const ex of exercises) {
+    const key = ex.category ?? "Other";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(ex);
+  }
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
@@ -40,10 +47,14 @@ export function PrescribeForm({
           className="h-12 w-full rounded-xl border border-input bg-card px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">Choose an exercise…</option>
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>
-              {ex.name}
-            </option>
+          {Array.from(grouped.entries()).map(([category, list]) => (
+            <optgroup key={category} label={category}>
+              {list.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>

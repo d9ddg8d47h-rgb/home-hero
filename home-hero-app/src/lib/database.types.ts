@@ -4,6 +4,19 @@
 
 export type Role = "physio" | "client";
 
+export const EXERCISE_CATEGORIES = [
+  "Gross Motor",
+  "Strength",
+  "Balance",
+  "Coordination",
+  "Stretching",
+  "Functional Play",
+  "Gait",
+  "Fine Motor",
+  "Core",
+  "Sports",
+] as const;
+
 export interface Database {
   public: {
     Tables: {
@@ -49,6 +62,7 @@ export interface Database {
           name: string;
           description: string;
           video_url: string | null;
+          category: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -58,6 +72,7 @@ export interface Database {
           name: string;
           description?: string;
           video_url?: string | null;
+          category?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +82,7 @@ export interface Database {
           name?: string;
           description?: string;
           video_url?: string | null;
+          category?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -124,6 +140,45 @@ export interface Database {
             columns: ["exercise_id"];
             isOneToOne: false;
             referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      completions: {
+        Row: {
+          id: string;
+          client_id: string;
+          prescription_id: string;
+          completed_on: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          prescription_id: string;
+          completed_on?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          prescription_id?: string;
+          completed_on?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "completions_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "completions_prescription_id_fkey";
+            columns: ["prescription_id"];
+            isOneToOne: false;
+            referencedRelation: "prescriptions";
             referencedColumns: ["id"];
           },
         ];

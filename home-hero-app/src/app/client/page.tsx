@@ -3,16 +3,22 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExerciseVideo } from "@/components/client/exercise-video";
+import { MarkDoneButton } from "@/components/client/mark-done-button";
+import { ProgressSummary } from "@/components/client/progress-summary";
+import { getClientProgress } from "@/lib/actions/completions";
 
 export default async function ClientHome() {
   const client = await requireClient();
   const supabase = await createClient();
 
-  const { data: prescriptions } = await supabase
-    .from("prescriptions")
-    .select("*, exercise:exercises(id, name, description, video_url)")
-    .eq("client_id", client.id)
-    .order("created_at", { ascending: false });
+  const [{ data: prescriptions }, progress] = await Promise.all([
+    supabase
+      .from("prescriptions")
+      .select("*, exercise:exercises(id, name, description, video_url)")
+      .eq("client_id", client.id)
+      .order("created_at", { ascending: false }),
+    getClientProgress(client.id),
+  ]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -22,6 +28,15 @@ export default async function ClientHome() {
         </h1>
         <p className="text-sm text-muted-foreground">Your home program</p>
       </div>
+
+      {prescriptions && prescriptions.length > 0 && (
+        <ProgressSummary
+          doneToday={progress.todayDone.size}
+          totalToday={prescriptions.length}
+          streak={progress.streak}
+          totalCompletions={progress.totalCompletions}
+        />
+      )}
 
       {!prescriptions || prescriptions.length === 0 ? (
         <Card>
@@ -61,6 +76,11 @@ export default async function ClientHome() {
                     💡 {p.note}
                   </div>
                 )}
+
+                <MarkDoneButton
+                  prescriptionId={p.id}
+                  done={progress.todayDone.has(p.id)}
+                />
               </CardContent>
             </Card>
           ))}
