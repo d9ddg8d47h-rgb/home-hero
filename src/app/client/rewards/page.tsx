@@ -1,13 +1,19 @@
 import { Flame, Lock } from "lucide-react";
 import { requireClient } from "@/lib/dal";
 import { getClientProgress } from "@/lib/actions/completions";
+import { getOpenedChestKeys } from "@/lib/actions/rewards";
 import { computeBadges, computeRank } from "@/lib/gamification";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AvatarPicker } from "@/components/client/avatar-picker";
+import { ChestGrid } from "@/components/client/chest-grid";
 import { cn } from "@/lib/utils";
 
 export default async function RewardsPage() {
   const client = await requireClient();
-  const progress = await getClientProgress(client.id);
+  const [progress, openedChestKeys] = await Promise.all([
+    getClientProgress(client.id),
+    getOpenedChestKeys(client.id),
+  ]);
 
   const rank = computeRank(progress.totalCompletions);
   const badges = computeBadges({
@@ -34,6 +40,9 @@ export default async function RewardsPage() {
                 {progress.totalCompletions} set{progress.totalCompletions === 1 ? "" : "s"}{" "}
                 completed all time
               </p>
+            </div>
+            <div className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-sm font-bold text-primary">
+              🪙 {rank.coins}
             </div>
           </div>
 
@@ -79,6 +88,27 @@ export default async function RewardsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your avatar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AvatarPicker current={client.avatar_emoji} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Treasure chests</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Earn coins to unlock a chest, then tap to reveal your prize
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ChestGrid coins={rank.coins} openedKeys={Array.from(openedChestKeys)} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

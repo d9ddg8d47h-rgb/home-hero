@@ -17,6 +17,8 @@ export const EXERCISE_CATEGORIES = [
   "Sports",
 ] as const;
 
+export const EXERCISE_DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
+
 export interface Database {
   public: {
     Tables: {
@@ -27,6 +29,7 @@ export interface Database {
           full_name: string;
           email: string;
           physio_id: string | null;
+          avatar_emoji: string | null;
           created_at: string;
         };
         Insert: {
@@ -35,6 +38,7 @@ export interface Database {
           full_name?: string;
           email: string;
           physio_id?: string | null;
+          avatar_emoji?: string | null;
           created_at?: string;
         };
         Update: {
@@ -43,6 +47,7 @@ export interface Database {
           full_name?: string;
           email?: string;
           physio_id?: string | null;
+          avatar_emoji?: string | null;
           created_at?: string;
         };
         Relationships: [
@@ -63,6 +68,12 @@ export interface Database {
           description: string;
           video_url: string | null;
           category: string | null;
+          body_area: string | null;
+          difficulty: string | null;
+          equipment: string | null;
+          progression_tip: string | null;
+          regression_tip: string | null;
+          parent_tip: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +84,12 @@ export interface Database {
           description?: string;
           video_url?: string | null;
           category?: string | null;
+          body_area?: string | null;
+          difficulty?: string | null;
+          equipment?: string | null;
+          progression_tip?: string | null;
+          regression_tip?: string | null;
+          parent_tip?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -83,6 +100,12 @@ export interface Database {
           description?: string;
           video_url?: string | null;
           category?: string | null;
+          body_area?: string | null;
+          difficulty?: string | null;
+          equipment?: string | null;
+          progression_tip?: string | null;
+          regression_tip?: string | null;
+          parent_tip?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -104,6 +127,7 @@ export interface Database {
           sets: number | null;
           reps: number | null;
           note: string | null;
+          order_index: number;
           created_at: string;
           updated_at: string;
         };
@@ -114,6 +138,7 @@ export interface Database {
           sets?: number | null;
           reps?: number | null;
           note?: string | null;
+          order_index?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -124,6 +149,7 @@ export interface Database {
           sets?: number | null;
           reps?: number | null;
           note?: string | null;
+          order_index?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -182,6 +208,112 @@ export interface Database {
             columns: ["prescription_id"];
             isOneToOne: false;
             referencedRelation: "prescriptions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_templates: {
+        Row: {
+          id: string;
+          physio_id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          physio_id: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          physio_id?: string;
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_templates_physio_id_fkey";
+            columns: ["physio_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      program_template_items: {
+        Row: {
+          id: string;
+          template_id: string;
+          exercise_id: string;
+          sets: number | null;
+          reps: number | null;
+          note: string | null;
+          order_index: number;
+        };
+        Insert: {
+          id?: string;
+          template_id: string;
+          exercise_id: string;
+          sets?: number | null;
+          reps?: number | null;
+          note?: string | null;
+          order_index?: number;
+        };
+        Update: {
+          id?: string;
+          template_id?: string;
+          exercise_id?: string;
+          sets?: number | null;
+          reps?: number | null;
+          note?: string | null;
+          order_index?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "program_template_items_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "program_templates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "program_template_items_exercise_id_fkey";
+            columns: ["exercise_id"];
+            isOneToOne: false;
+            referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      client_rewards: {
+        Row: {
+          id: string;
+          client_id: string;
+          reward_type: "chest";
+          reward_key: string;
+          unlocked_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          reward_type: "chest";
+          reward_key: string;
+          unlocked_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          reward_type?: "chest";
+          reward_key?: string;
+          unlocked_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_rewards_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];

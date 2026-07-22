@@ -18,9 +18,11 @@ export default async function ClientProgramPage() {
   const [{ data: prescriptions }, progress] = await Promise.all([
     supabase
       .from("prescriptions")
-      .select("*, exercise:exercises(id, name, description, video_url, category)")
+      .select(
+        "*, exercise:exercises(id, name, description, video_url, category, equipment, parent_tip)"
+      )
       .eq("client_id", client.id)
-      .order("created_at", { ascending: false }),
+      .order("order_index", { ascending: true }),
     getClientProgress(client.id),
   ]);
 
@@ -102,11 +104,20 @@ export default async function ClientProgramPage() {
 
                 <div className="flex flex-wrap gap-1.5">
                   {p.reps != null && <Badge>{p.reps} reps each set</Badge>}
+                  {p.exercise?.equipment && (
+                    <Badge variant="muted">🧰 {p.exercise.equipment}</Badge>
+                  )}
                 </div>
 
                 {p.note && (
                   <div className="rounded-xl bg-accent/15 p-3 text-sm text-accent-foreground">
                     💡 {p.note}
+                  </div>
+                )}
+
+                {p.exercise?.parent_tip && (
+                  <div className="rounded-xl bg-primary/10 p-3 text-sm text-foreground">
+                    👨‍👩‍👧 <span className="font-medium">Tip for you:</span> {p.exercise.parent_tip}
                   </div>
                 )}
 

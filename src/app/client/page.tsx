@@ -2,10 +2,11 @@ import Link from "next/link";
 import { ChevronRight, Flame, Trophy } from "lucide-react";
 import { requireClient } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
-import { getClientProgress } from "@/lib/actions/completions";
+import { getClientProgress, getWeeklyChallengeProgress } from "@/lib/actions/completions";
 import { computeBadges, computeRank } from "@/lib/gamification";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { WeeklyChallengeCard } from "@/components/client/weekly-challenge-card";
 
 function mascotMessage({
   doneToday,
@@ -35,9 +36,10 @@ export default async function ClientDashboard() {
   const client = await requireClient();
   const supabase = await createClient();
 
-  const [{ data: prescriptions }, progress] = await Promise.all([
+  const [{ data: prescriptions }, progress, weeklyChallenge] = await Promise.all([
     supabase.from("prescriptions").select("id, sets").eq("client_id", client.id),
     getClientProgress(client.id),
+    getWeeklyChallengeProgress(client.id),
   ]);
 
   const totalToday = prescriptions?.length ?? 0;
@@ -113,6 +115,8 @@ export default async function ClientDashboard() {
           </Link>
         </CardContent>
       </Card>
+
+      <WeeklyChallengeCard progress={weeklyChallenge} />
 
       <Link href="/client/rewards">
         <Card className="transition hover:border-primary">

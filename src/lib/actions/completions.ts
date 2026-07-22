@@ -3,9 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { requireClient } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
+import { getWeeklyChallenge, type WeeklyChallenge } from "@/lib/gamification";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// Start (Monday) of the current ISO week, as a YYYY-MM-DD string.
+function startOfWeekISO() {
+  const now = new Date();
+  const day = now.getUTCDay() || 7; // Sunday -> 7
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  monday.setUTCDate(monday.getUTCDate() - (day - 1));
+  return monday.toISOString().slice(0, 10);
 }
 
 async function adjustSetsDone(prescriptionId: string, delta: number) {
@@ -125,4 +135,32 @@ export async function getClientProgress(clientId: string): Promise<ClientProgres
   const totalCompletions = rows.reduce((sum, r) => sum + r.sets_done, 0);
 
   return { todaySetsDone, streak, longestStreak, totalCompletions };
+}
+
+export type WeeklyChallengeProgress = {
+  challenge: WeeklyChallenge;
+  current: number;
+  complete: boolean;
+};
+
+export async function getWeeklyChallengeProgress(
+  clientId: string
+): Promise<WeeklyChallengeProgress> {
+  const challenge = getWeeklyChallenge();
+  const supabase = await createClient();
+  const weekStart = startOfWeekISO();
+
+  const { data } = await supabase
+    .from("completions")
+    .select("completed_on, sets_done")
+    .eq("client_id", clientId)
+    .gte("completed_on", weekStart);
+
+  const rows = data ?? [];
+  const current =
+    challenge.unit === "days"
+      ? new Set(rows.map((r) => r.completed_on)).size
+      : rows.reduce((sum, r) => sum + r.sets_done, 0);
+
+  return { challenge, current: Math.min(current, challenge.target), complete: current >= challenge.target };
 }

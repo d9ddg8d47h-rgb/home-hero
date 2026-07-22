@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ActionState } from "@/lib/actions/exercises";
 import type { Database } from "@/lib/database.types";
-import { EXERCISE_CATEGORIES } from "@/lib/database.types";
+import { EXERCISE_CATEGORIES, EXERCISE_DIFFICULTIES } from "@/lib/database.types";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
@@ -17,7 +17,19 @@ export function ExerciseForm({
   submitLabel,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
-  defaultValues?: Pick<Exercise, "name" | "description" | "video_url" | "category">;
+  defaultValues?: Pick<
+    Exercise,
+    | "name"
+    | "description"
+    | "video_url"
+    | "category"
+    | "body_area"
+    | "difficulty"
+    | "equipment"
+    | "progression_tip"
+    | "regression_tip"
+    | "parent_tip"
+  >;
   submitLabel: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
@@ -68,6 +80,75 @@ export function ExerciseForm({
           defaultValue={defaultValues?.video_url ?? ""}
         />
       </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="bodyArea">Body area</Label>
+          <Input
+            id="bodyArea"
+            name="bodyArea"
+            placeholder="e.g. Hips, Core, Ankles"
+            defaultValue={defaultValues?.body_area ?? ""}
+          />
+        </div>
+        <div>
+          <Label htmlFor="difficulty">Difficulty</Label>
+          <select
+            id="difficulty"
+            name="difficulty"
+            defaultValue={defaultValues?.difficulty ?? ""}
+            className="h-12 w-full rounded-xl border border-input bg-card px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">Not set</option>
+            {EXERCISE_DIFFICULTIES.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="equipment">Equipment needed (optional)</Label>
+        <Input
+          id="equipment"
+          name="equipment"
+          placeholder="e.g. Mat, small ball — leave blank for none"
+          defaultValue={defaultValues?.equipment ?? ""}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="progressionTip">Make it harder (optional)</Label>
+        <Textarea
+          id="progressionTip"
+          name="progressionTip"
+          placeholder="How to progress this exercise as they improve"
+          defaultValue={defaultValues?.progression_tip ?? ""}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="regressionTip">Make it easier (optional)</Label>
+        <Textarea
+          id="regressionTip"
+          name="regressionTip"
+          placeholder="A simpler variation if this is too hard"
+          defaultValue={defaultValues?.regression_tip ?? ""}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="parentTip">Tip for parents (optional)</Label>
+        <Textarea
+          id="parentTip"
+          name="parentTip"
+          placeholder="Shown to the family alongside the exercise"
+          defaultValue={defaultValues?.parent_tip ?? ""}
+        />
+      </div>
+
       {state?.error && (
         <p className="text-sm text-destructive" role="alert">
           {state.error}

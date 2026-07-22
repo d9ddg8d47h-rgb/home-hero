@@ -18,6 +18,12 @@ const exerciseSchema = z.object({
     .refine((v) => !v || /^https?:\/\//.test(v), {
       message: "Video link should be a full URL (starting with http:// or https://).",
     }),
+  bodyArea: z.string().optional().default(""),
+  difficulty: z.string().optional().default(""),
+  equipment: z.string().optional().default(""),
+  progressionTip: z.string().optional().default(""),
+  regressionTip: z.string().optional().default(""),
+  parentTip: z.string().optional().default(""),
 });
 
 export async function createExercise(
@@ -30,6 +36,12 @@ export async function createExercise(
     description: formData.get("description"),
     category: formData.get("category"),
     videoUrl: formData.get("videoUrl"),
+    bodyArea: formData.get("bodyArea"),
+    difficulty: formData.get("difficulty"),
+    equipment: formData.get("equipment"),
+    progressionTip: formData.get("progressionTip"),
+    regressionTip: formData.get("regressionTip"),
+    parentTip: formData.get("parentTip"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -42,6 +54,12 @@ export async function createExercise(
     description: parsed.data.description,
     category: parsed.data.category || null,
     video_url: parsed.data.videoUrl || null,
+    body_area: parsed.data.bodyArea || null,
+    difficulty: parsed.data.difficulty || null,
+    equipment: parsed.data.equipment || null,
+    progression_tip: parsed.data.progressionTip || null,
+    regression_tip: parsed.data.regressionTip || null,
+    parent_tip: parsed.data.parentTip || null,
   });
 
   if (error) return { error: error.message };
@@ -61,6 +79,12 @@ export async function updateExercise(
     description: formData.get("description"),
     category: formData.get("category"),
     videoUrl: formData.get("videoUrl"),
+    bodyArea: formData.get("bodyArea"),
+    difficulty: formData.get("difficulty"),
+    equipment: formData.get("equipment"),
+    progressionTip: formData.get("progressionTip"),
+    regressionTip: formData.get("regressionTip"),
+    parentTip: formData.get("parentTip"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -74,6 +98,12 @@ export async function updateExercise(
       description: parsed.data.description,
       category: parsed.data.category || null,
       video_url: parsed.data.videoUrl || null,
+      body_area: parsed.data.bodyArea || null,
+      difficulty: parsed.data.difficulty || null,
+      equipment: parsed.data.equipment || null,
+      progression_tip: parsed.data.progressionTip || null,
+      regression_tip: parsed.data.regressionTip || null,
+      parent_tip: parsed.data.parentTip || null,
     })
     .eq("id", exerciseId);
 

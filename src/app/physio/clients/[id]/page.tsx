@@ -3,15 +3,18 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Trash2, Flame } from "lucide-react";
 import { requirePhysio } from "@/lib/dal";
 import { createClient } from "@/lib/supabase/server";
-import { deleteClient } from "@/lib/actions/clients";
-import { deletePrescription } from "@/lib/actions/prescriptions";
+import { deleteClient, getMyClients } from "@/lib/actions/clients";
 import { getClientProgressStats } from "@/lib/actions/progress";
 import { computeBadges } from "@/lib/gamification";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { PrescribeForm } from "@/components/physio/prescribe-form";
 import { ProgressHeatmap } from "@/components/physio/progress-heatmap";
+import {
+  PrescriptionList,
+  SaveAsTemplateForm,
+  CopyProgramForm,
+} from "@/components/physio/program-tools";
 
 export default async function ClientDetailPage({
   params,
@@ -22,7 +25,7 @@ export default async function ClientDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: client }, { data: exercises }, { data: prescriptions }, progress] =
+  const [{ data: client }, { data: exercises }, { data: prescriptions }, progress, myClients] =
     await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).single(),
       supabase.from("exercises").select("*").order("name"),
@@ -30,9 +33,14 @@ export default async function ClientDetailPage({
         .from("prescriptions")
         .select("*, exercise:exercises(id, name, video_url)")
         .eq("client_id", id)
-        .order("created_at", { ascending: false }),
+        .order("order_index", { ascending: true }),
       getClientProgressStats(id),
+      getMyClients(),
     ]);
+
+  const otherClients = myClients
+    .filter((c) => c.id !== id)
+    .map((c) => ({ id: c.id, full_name: c.full_name }));
 
   if (!client || client.role !== "client") notFound();
 
@@ -131,38 +139,13 @@ export default async function ClientDetailPage({
         <CardHeader>
           <CardTitle>Prescribed exercises</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {!prescriptions || prescriptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing prescribed yet — add one below.
-            </p>
-          ) : (
-            prescriptions.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-border p-3"
-              >
-                <div>
-                  <p className="font-medium">{p.exercise?.name ?? "Deleted exercise"}</p>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {p.sets != null && <Badge variant="muted">{p.sets} sets</Badge>}
-                    {p.reps != null && <Badge variant="muted">{p.reps} reps</Badge>}
-                  </div>
-                  {p.note && (
-                    <p className="mt-1 text-sm text-muted-foreground">{p.note}</p>
-                  )}
-                </div>
-                <form action={deletePrescription.bind(null, p.id, client.id)}>
-                  <button
-                    type="submit"
-                    aria-label="Remove prescription"
-                    className="rounded-lg p-2 text-muted-foreground hover:bg-muted"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </form>
-              </div>
-            ))
+        <CardContent className="flex flex-col gap-4">
+          <PrescriptionList clientId={client.id} prescriptions={prescriptions ?? []} />
+          {prescriptions && prescriptions.length > 0 && (
+            <div className="flex flex-col gap-3 border-t border-border pt-4">
+              <SaveAsTemplateForm clientId={client.id} />
+              <CopyProgramForm clientId={client.id} otherClients={otherClients} />
+            </div>
           )}
         </CardContent>
       </Card>
