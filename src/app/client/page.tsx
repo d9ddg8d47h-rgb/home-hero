@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { ExerciseVideo } from "@/components/client/exercise-video";
 import { MarkDoneButton } from "@/components/client/mark-done-button";
 import { ProgressSummary } from "@/components/client/progress-summary";
+import { SurpriseMeButton } from "@/components/client/surprise-me-button";
 import { getClientProgress } from "@/lib/actions/completions";
+import { emojiForCategory } from "@/lib/exercise-emoji";
 
 export default async function ClientHome() {
   const client = await requireClient();
@@ -14,11 +16,15 @@ export default async function ClientHome() {
   const [{ data: prescriptions }, progress] = await Promise.all([
     supabase
       .from("prescriptions")
-      .select("*, exercise:exercises(id, name, description, video_url)")
+      .select("*, exercise:exercises(id, name, description, video_url, category)")
       .eq("client_id", client.id)
       .order("created_at", { ascending: false }),
     getClientProgress(client.id),
   ]);
+
+  const pendingIds = (prescriptions ?? [])
+    .filter((p) => !progress.todayDone.has(p.id))
+    .map((p) => p.id);
 
   return (
     <div className="flex flex-col gap-5">
@@ -49,10 +55,19 @@ export default async function ClientHome() {
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
+          <SurpriseMeButton pendingIds={pendingIds} />
+
           {prescriptions.map((p) => (
-            <Card key={p.id}>
+            <Card
+              key={p.id}
+              id={`exercise-${p.id}`}
+              className="scroll-mt-20 transition-shadow"
+            >
               <CardContent className="flex flex-col gap-3 py-5">
                 <h2 className="text-lg font-semibold">
+                  <span aria-hidden="true">
+                    {emojiForCategory(p.exercise?.category)}
+                  </span>{" "}
                   {p.exercise?.name ?? "Exercise"}
                 </h2>
 

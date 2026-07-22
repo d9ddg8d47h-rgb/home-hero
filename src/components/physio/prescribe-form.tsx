@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { emojiForCategory } from "@/lib/exercise-emoji";
 import type { Database } from "@/lib/database.types";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
@@ -48,7 +49,7 @@ export function PrescribeForm({
         >
           <option value="">Choose an exercise…</option>
           {Array.from(grouped.entries()).map(([category, list]) => (
-            <optgroup key={category} label={category}>
+            <optgroup key={category} label={`${emojiForCategory(category)} ${category}`}>
               {list.map((ex) => (
                 <option key={ex.id} value={ex.id}>
                   {ex.name}
